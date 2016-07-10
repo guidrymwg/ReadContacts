@@ -271,7 +271,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Find the root of the external storage and output external storage info to screen
-        root = android.os.Environment.getExternalStorageDirectory();
+        //root = android.os.Environment.getExternalStorageDirectory();
+        root = this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
         tv.append("External storage: Exists=" + mExternalStorageAvailable + ", Writable="
                 + mExternalStorageWriteable + "\nRoot=" + root + "\n");
     }
