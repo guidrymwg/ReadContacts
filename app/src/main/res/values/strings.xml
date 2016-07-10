@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">ReadContacts</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello">Read and Processed Contacts.\n</string>
 </resources>
