@@ -81,6 +81,8 @@ public class MainActivity extends AppCompatActivity {
 
         progressBar = (ProgressBar) findViewById(R.id.progress_bar);
 
+        // Call a check for runtime permissions here
+
         // Check that external media available and writable
         checkExternalMedia();
 
