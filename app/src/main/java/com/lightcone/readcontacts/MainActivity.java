@@ -1,7 +1,14 @@
 package com.lightcone.readcontacts;
 
+import android.Manifest; //added
+import android.content.Context; //added
+import android.content.DialogInterface; //added
+import android.content.Intent; //added
+import android.content.pm.PackageManager; //added
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat; //added
+import android.support.v7.app.AlertDialog; //added
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
@@ -66,6 +73,15 @@ public class MainActivity extends AppCompatActivity {
 
     private ProgressBar progressBar;
 
+    // User defines value of REQUEST_CONTACTS. It will identify a permission request
+    // specifically for ACCESS_FINE_LOCATION.  Define a different integer for each
+    // "dangerous" permission that you will request at runtime (in this example there
+    // is only one).
+
+    final private int REQUEST_CONTACTS = 1; // User-defined integer  //added
+    private static final String TAG = "RCONTACTS"; //added
+    private static final int dialogIcon = R.mipmap.ic_launcher; //added
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,10 +97,11 @@ public class MainActivity extends AppCompatActivity {
 
         progressBar = (ProgressBar) findViewById(R.id.progress_bar);
 
-        // Call a check for runtime permissions here
+        // Call a check for runtime permissions
+        checkRuntimePermissions();
 
         // Check that external media available and writable
-        checkExternalMedia();
+        //checkExternalMedia();  //added
 
         // Read the contacts and output to a file.  Process this on a background
         // thread defined by an instance of AsyncTask because it will typically
@@ -92,9 +109,181 @@ public class MainActivity extends AppCompatActivity {
         // an indeterminate progress bar to the user while the contacts are being
         // processed.
 
-        new BackgroundProcessor().execute();
+        //new BackgroundProcessor().execute(); // added
 
     }
+
+    // Method executed to run app if permission has been granted
+
+    public void doTheStuff(){  //added
+
+        // Check that external media available and writable
+        checkExternalMedia();  //added
+
+        // Read the contacts and output to a file.  Process this on a background
+        // thread defined by an instance of AsyncTask because it will typically
+        // take several seconds to process a few hundred contacts. We will display
+        // an indeterminate progress bar to the user while the contacts are being
+        // processed.
+
+         new BackgroundProcessor().execute();
+    }
+
+    //added
+    /* Method to check runtime permissions.  For Android 6 (API 23) and
+     beyond, we must check for the "dangerous" permission READ_CONTACTS at
+     runtime (in addition to declaring it in the manifest file).  The following code checks
+     for this permission.  If it has already been granted, it proceeds as normal.  If it
+     has not yet been granted by the user, the user is presented with an opportunity to grant
+     it. In general, the rest of this class will not execute until the user has granted such permission. */
+
+    public void checkRuntimePermissions() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            /* Permission has not been granted by user previously.  Request it now. The system
+             will present a dialog to the user requesting the permission, with options "accept",
+             "deny", and a box to check "don't ask again". When the user chooses, the system
+             will then fire the onRequestPermissionsResult() callback, passing in the user-defined
+             integer defining the type of permission request (REQUEST_CONTACTS in this case)
+             and the "accept" or "deny" user response.  We deal appropriately
+             with the user response in our override of onRequestPermissionsResult() below.*/
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_CONTACTS}, REQUEST_CONTACTS);
+        } else {
+            Log.i(TAG, "Permission has been granted");
+
+            doTheStuff();
+        }
+
+    } //added
+
+      /*Following method invoked by the system after the user response to a runtime permission request
+     (Android 6, API 23 and beyond implement such runtime permissions). The system passes to this
+     method the user's response, which you then should act upon in this method.  This method can respond
+     to more than one type permission.  The user-defined integer requestCode (passed in the call to
+     ActivityCompat.requestPermissions) distinguishes which permission is being processed. */
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+
+        // Since this method may handle more than one type of permission, distinguish which one by a
+        // switch on the requestCode passed back to you by the system.
+
+        switch (requestCode) {
+
+            // The permission response was for fine location
+            case REQUEST_CONTACTS:
+                Log.i(TAG, "Read contacts permission granted: requestCode=" + requestCode);
+                // If the request was canceled by user, the results arrays are empty
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // Permission was granted. Carry on as we would without the permission request
+
+                    doTheStuff();
+
+                } else {
+                    Log.i(TAG, "onRequestPermissionsResult - permission denied: requestCode=" + requestCode);
+
+                    // The permission was denied.  Warn the user of the consequences and give
+                    // them one last time to enable the permission.
+
+                    showTaskDialog(1, "Warning!",
+                            "This app will not function without this permission!",
+                            dialogIcon, this, "OK, Do Over", "Refuse Permission");
+                }
+                return;
+
+        }
+    }
+
+    /**
+     * Method showTaskDialog() creates a custom alert dialog. This dialog presents text defining
+     * a choice to the user and has buttons for a binary choice. Pressing the rightmost button
+     * will execute the method positiveTask(id) and pressing the leftmost button will execute the
+     * method negativeTask(id). You should define appropriate actions in each. (If the
+     * negativeTask(id) method is empty the default action is just to close the dialog window.)
+     * The argument id is a user-defined integer distinguishing multiple uses of this method in
+     * the same class.  The programmer should switch on id in the response methods
+     * positiveTask(id) and negativeTask(id) to decide which alert dialog to respond to.
+     * This version of AlertDialog.Builder allows a theme to be specified. Removing the theme
+     * argument from the AlertDialog.Builder below will cause the default dialog theme to be used. */
+
+    private void showTaskDialog(int id, String title, String message, int icon, Context context,
+                                String positiveButtonText, String negativeButtonText){
+
+        final int fid=id;  // Must be final to access from anonymous inner class below
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context,R.style.MyDialogTheme);
+        builder.setMessage(message).setTitle(title).setIcon(icon);
+
+        // Add the right button
+        builder.setPositiveButton(positiveButtonText, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                positiveTask(fid);
+            }
+        });
+        // Add the left button
+        builder.setNegativeButton(negativeButtonText, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                negativeTask(fid);
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    // Method to be executed if user chooses negative button. This returns to main
+    // activity since there is no permission to execute this class.
+
+    private void negativeTask(int id){
+
+        // Use id to distinguish if more than one usage of the alert dialog
+        switch(id) {
+
+            case 1:
+                // Warning that this part of app not enabled
+                String warn ="Exiting the app. It is installed but not enabled.  To enable this ";
+                warn += "app you may manually enable Contacts permission in ";
+                warn += " Settings > App > ReadContacts > Permissions.";
+                // New single-button dialog
+                showTaskDialog(2,"Task not enabled!", warn, dialogIcon, this, "", "OK");
+                break;
+
+            case 2:
+                // Exit the app since permission was denied
+                finish();
+                break;
+        }
+
+    }
+
+    // Method to execute if user chooses positive button ("OK, I'll Do It"). This starts the check
+    // of runtime permissions again.
+
+    private void positiveTask(int id){
+
+        // Use id to distinguish if more than one usage of the alert dialog
+        switch(id) {
+
+            case 1:
+                // User agreed to enable location
+                checkRuntimePermissions();
+
+                break;
+
+            case 2:
+
+                break;
+
+        }
+
+    }
+
+
 
     // Method to process contacts (reads them and writes formatted output to a file on device, in
     // addition to concatenating a string listing the contacts in the list that will be displayed
