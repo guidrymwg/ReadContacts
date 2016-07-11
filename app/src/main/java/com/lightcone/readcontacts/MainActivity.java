@@ -283,8 +283,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-
     // Method to process contacts (reads them and writes formatted output to a file on device, in
     // addition to concatenating a string listing the contacts in the list that will be displayed
     // on the phone screen).  This method will be invoked from a background thread since it will
