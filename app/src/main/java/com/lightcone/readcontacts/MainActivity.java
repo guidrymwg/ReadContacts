@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar progressBar;
 
     // User defines value of REQUEST_CONTACTS. It will identify a permission request
-    // specifically for ACCESS_FINE_LOCATION.  Define a different integer for each
+    // specifically for READ_CONTACTS.  Define a different integer for each
     // "dangerous" permission that you will request at runtime (in this example there
     // is only one).
 
@@ -163,13 +163,14 @@ public class MainActivity extends AppCompatActivity {
      (Android 6, API 23 and beyond implement such runtime permissions). The system passes to this
      method the user's response, which you then should act upon in this method.  This method can respond
      to more than one type permission.  The user-defined integer requestCode (passed in the call to
-     ActivityCompat.requestPermissions) distinguishes which permission is being processed. */
+     ActivityCompat.requestPermissions) distinguishes which permission is being processed. In the
+     present example there will be only one type of permission checked. */
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 
         // Since this method may handle more than one type of permission, distinguish which one by a
-        // switch on the requestCode passed back to you by the system.
+        // switch on the requestCode that you defined that is passed back to you by the system.
 
         switch (requestCode) {
 
@@ -208,15 +209,16 @@ public class MainActivity extends AppCompatActivity {
      * The argument id is a user-defined integer distinguishing multiple uses of this method in
      * the same class.  The programmer should switch on id in the response methods
      * positiveTask(id) and negativeTask(id) to decide which alert dialog to respond to.
-     * This version of AlertDialog.Builder allows a theme to be specified. Removing the theme
-     * argument from the AlertDialog.Builder below will cause the default dialog theme to be used. */
+     * No theme argument is given to the AlertDialog.Builder below so the default dialog theme
+     * will be used. To supply your own theme, add a second (theme) argument to the AlertDialog.Builder
+     * constructor referencing your custom dialog theme defined in styles.xml. */
 
     private void showTaskDialog(int id, String title, String message, int icon, Context context,
                                 String positiveButtonText, String negativeButtonText){
 
         final int fid=id;  // Must be final to access from anonymous inner class below
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(context,R.style.MyDialogTheme);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setMessage(message).setTitle(title).setIcon(icon);
 
         // Add the right button
@@ -236,8 +238,7 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    // Method to be executed if user chooses negative button. This returns to main
-    // activity since there is no permission to execute this class.
+    // Method to be executed if user chooses negative button in dialog.
 
     private void negativeTask(int id){
 
@@ -285,8 +286,8 @@ public class MainActivity extends AppCompatActivity {
 
     // Method to process contacts (reads them and writes formatted output to a file on device, in
     // addition to concatenating a string listing the contacts in the list that will be displayed
-    // on the phone screen).  This method will be invoked from a background thread since it will
-    // take some time to execute.
+    // on the phone screen).  This method will be invoked from a background thread since it may
+    // take some time to execute if the contacts list is long.
 
     private String processContacts() {
 
@@ -294,7 +295,12 @@ public class MainActivity extends AppCompatActivity {
          query of the Contacts database to a file on the SD card.  Must wrap the whole thing
          in a try-catch to catch file not found and i/o exceptions. Note that since we are writing
          to external media we must add a WRITE_EXTERNAL_STORAGE permission to the
-         manifest file.  Otherwise  a FileNotFoundException will be thrown. */
+         manifest file prior to Android 4.4.  Otherwise  a FileNotFoundException will be thrown.
+         Since we are going to write to the external storage specifically for this app, this
+         permission is not required after Android 4.4, but it is included in the manifest for
+         backward compatibility with earlier versions of Android.  Because in Android 6 and later
+         this permission is not required for the write we are going to do, it is not necessary
+         to worry about runtime permissions for it as we did above for READ_CONTACTS. */
 
         // Create a StringBuilder for efficient concatenation of contact list into single string.
         // (We cannot append directly to the views from here because this will be run on background
@@ -304,9 +310,9 @@ public class MainActivity extends AppCompatActivity {
 
         StringBuilder stringBuilder = new StringBuilder();
 
-        // This will set up output to /sdcard/download/phoneData.txt if /sdcard is the root of
-        // the external storage.  See the project WriteSDCard for more information about
-        // writing to a file on the SD card.
+        // This will set up output to the root of external storage allocated for this app. As noted
+        // above, for Android 4.4 and later this no longer requiresWRITE_EXTERNAL_STORAGE permission
+        // See the project WriteSDCard for more information about writing to a file on the SD card.
 
         File dir = new File(root.getAbsolutePath() + "/download");
         dir.mkdirs();
@@ -382,7 +388,9 @@ public class MainActivity extends AppCompatActivity {
 
                     // Query Address (assume only one address stored for simplicity). If there is
                     // more than one address we loop through all with the while-loop but keep
-                    // only the last one.
+                    // only the last one. In a realistic application one might want to handle the
+                    // choice among different addresses for the same user in a more sophisticated
+                    // way.
 
                     addcounter = 0;
                     Cursor addCur = cr.query(AURI, null, AID + " = ?", new String[]{id}, null);
@@ -418,6 +426,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
+
             // Flush the PrintWriter to ensure everything pending is output before closing
             pw.flush();
             pw.close();
@@ -459,7 +468,7 @@ public class MainActivity extends AppCompatActivity {
             mExternalStorageAvailable = mExternalStorageWriteable = false;
         }
 
-        // Find the root of the external storage and output external storage info to screen
+        // Find the root of the external storage for this app and output external storage info to screen
         root = this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
         tv.append("External storage: Exists=" + mExternalStorageAvailable + ", Writable="
                 + mExternalStorageWriteable + "\nRoot=" + root + "\n");
@@ -529,13 +538,16 @@ public class MainActivity extends AppCompatActivity {
             return processContacts();
         }
 
-        // This method executed before the thread run by doInBackground.  It runs on the main UI thread,
+        // This method is executed before the thread run by doInBackground.  It runs on the main UI thread,
         // so we can touch the UI views from here.
 
         @Override
         protected void onPreExecute() {
 
-            // Hide the textview and display the progress bar while thread running
+            // Hide the textview and display the progress bar while thread running. The progress bar is
+            // displayed inline on the screen that the text output will go to.  See the format defined
+            // in activity_main.xml and in the Progress Bars project.
+
             tv.setVisibility(TextView.INVISIBLE);
             progressBar.setVisibility(ProgressBar.VISIBLE);
 
