@@ -1,14 +1,13 @@
 package com.lightcone.readcontacts;
 
-import android.Manifest; //added
-import android.content.Context; //added
-import android.content.DialogInterface; //added
-import android.content.Intent; //added
-import android.content.pm.PackageManager; //added
+import android.Manifest; 
+import android.content.Context; 
+import android.content.DialogInterface; 
+import android.content.pm.PackageManager; 
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat; //added
-import android.support.v7.app.AlertDialog; //added
+import android.support.v4.app.ActivityCompat; 
+import android.support.v7.app.AlertDialog; 
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
@@ -78,9 +77,9 @@ public class MainActivity extends AppCompatActivity {
     // "dangerous" permission that you will request at runtime (in this example there
     // is only one).
 
-    final private int REQUEST_CONTACTS = 1; // User-defined integer  //added
-    private static final String TAG = "RCONTACTS"; //added
-    private static final int dialogIcon = R.mipmap.ic_launcher; //added
+    final private int REQUEST_CONTACTS = 1; // User-defined integer  
+    private static final String TAG = "RCONTACTS"; 
+    private static final int dialogIcon = R.mipmap.ic_launcher; 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,25 +99,14 @@ public class MainActivity extends AppCompatActivity {
         // Call a check for runtime permissions
         checkRuntimePermissions();
 
-        // Check that external media available and writable
-        //checkExternalMedia();  //added
-
-        // Read the contacts and output to a file.  Process this on a background
-        // thread defined by an instance of AsyncTask because it will typically
-        // take several seconds to process a few hundred contacts. We will display
-        // an indeterminate progress bar to the user while the contacts are being
-        // processed.
-
-        //new BackgroundProcessor().execute(); // added
-
     }
 
     // Method executed to run app if permission has been granted
 
-    public void doTheStuff(){  //added
+    public void doTheStuff() {  
 
         // Check that external media available and writable
-        checkExternalMedia();  //added
+        checkExternalMedia();  
 
         // Read the contacts and output to a file.  Process this on a background
         // thread defined by an instance of AsyncTask because it will typically
@@ -126,10 +114,10 @@ public class MainActivity extends AppCompatActivity {
         // an indeterminate progress bar to the user while the contacts are being
         // processed.
 
-         new BackgroundProcessor().execute();
+        new BackgroundProcessor().execute();
     }
 
-    //added
+    
     /* Method to check runtime permissions.  For Android 6 (API 23) and
      beyond, we must check for the "dangerous" permission READ_CONTACTS at
      runtime (in addition to declaring it in the manifest file).  The following code checks
@@ -157,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
             doTheStuff();
         }
 
-    } //added
+    } 
 
       /*Following method invoked by the system after the user response to a runtime permission request
      (Android 6, API 23 and beyond implement such runtime permissions). The system passes to this
@@ -211,12 +199,13 @@ public class MainActivity extends AppCompatActivity {
      * positiveTask(id) and negativeTask(id) to decide which alert dialog to respond to.
      * No theme argument is given to the AlertDialog.Builder below so the default dialog theme
      * will be used. To supply your own theme, add a second (theme) argument to the AlertDialog.Builder
-     * constructor referencing your custom dialog theme defined in styles.xml. */
+     * constructor referencing your custom dialog theme defined in styles.xml.
+     */
 
     private void showTaskDialog(int id, String title, String message, int icon, Context context,
-                                String positiveButtonText, String negativeButtonText){
+                                String positiveButtonText, String negativeButtonText) {
 
-        final int fid=id;  // Must be final to access from anonymous inner class below
+        final int fid = id;  // Must be final to access from anonymous inner class below
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setMessage(message).setTitle(title).setIcon(icon);
@@ -240,18 +229,18 @@ public class MainActivity extends AppCompatActivity {
 
     // Method to be executed if user chooses negative button in dialog.
 
-    private void negativeTask(int id){
+    private void negativeTask(int id) {
 
         // Use id to distinguish if more than one usage of the alert dialog
-        switch(id) {
+        switch (id) {
 
             case 1:
                 // Warning that this part of app not enabled
-                String warn ="Exiting the app. It is installed but not enabled.  To enable this ";
+                String warn = "Exiting the app. It is installed but not enabled.  To enable this ";
                 warn += "app you may manually enable Contacts permission in ";
                 warn += " Settings > App > ReadContacts > Permissions.";
                 // New single-button dialog
-                showTaskDialog(2,"Task not enabled!", warn, dialogIcon, this, "", "OK");
+                showTaskDialog(2, "Task not enabled!", warn, dialogIcon, this, "", "OK");
                 break;
 
             case 2:
@@ -265,10 +254,10 @@ public class MainActivity extends AppCompatActivity {
     // Method to execute if user chooses positive button ("OK, I'll Do It"). This starts the check
     // of runtime permissions again.
 
-    private void positiveTask(int id){
+    private void positiveTask(int id) {
 
         // Use id to distinguish if more than one usage of the alert dialog
-        switch(id) {
+        switch (id) {
 
             case 1:
                 // User agreed to enable location
@@ -287,7 +276,8 @@ public class MainActivity extends AppCompatActivity {
     // Method to process contacts (reads them and writes formatted output to a file on device, in
     // addition to concatenating a string listing the contacts in the list that will be displayed
     // on the phone screen).  This method will be invoked from a background thread since it may
-    // take some time to execute if the contacts list is long.
+    // take some time to execute if the contacts list is long and we want the UI to remain
+    // responsive.
 
     private String processContacts() {
 
@@ -311,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
         StringBuilder stringBuilder = new StringBuilder();
 
         // This will set up output to the root of external storage allocated for this app. As noted
-        // above, for Android 4.4 and later this no longer requiresWRITE_EXTERNAL_STORAGE permission
+        // above, for Android 4.4 and later this no longer requires WRITE_EXTERNAL_STORAGE permission.
         // See the project WriteSDCard for more information about writing to a file on the SD card.
 
         File dir = new File(root.getAbsolutePath() + "/download");
