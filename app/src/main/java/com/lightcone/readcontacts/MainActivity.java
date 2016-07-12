@@ -304,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
         // above, for Android 4.4 and later this no longer requires WRITE_EXTERNAL_STORAGE permission.
         // See the project WriteSDCard for more information about writing to a file on the SD card.
 
-        File dir = new File(root.getAbsolutePath() + "/download");
+        File dir = new File(root.getAbsolutePath());
         dir.mkdirs();
         File file = new File(dir, "phoneData.txt");
 
@@ -459,7 +459,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Find the root of the external storage for this app and output external storage info to screen
-        root = this.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+        root = this.getExternalFilesDir(null);
         tv.append("External storage: Exists=" + mExternalStorageAvailable + ", Writable="
                 + mExternalStorageWriteable + "\nRoot=" + root + "\n");
     }
